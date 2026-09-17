@@ -1,79 +1,103 @@
-# ⚡ [Gemi_pjt] 인구·인프라 기반 소비 예측 모델 및 ‘소비 잠재력’ 상권 발굴
+# [머신러닝 예측 & 갭 분석] 인구·인프라 기반 소비 예측 모델 및 '소비 잠재력' 상권 발굴 계획서
 
-> **"인구와 인프라 대비 실제 소비가 초과 달성되거나, 반대로 저평가된 동네는 어디인가?"**  
-> 서울시 425개 행정동의 상주·직장·유동인구와 집객시설, 교통, 주거자산 데이터를 머신러닝 공식형 모델(Log-Log Ridge)로 학습하여 **동네별 기대 소비액**을 산출하고, 실제 카드 소비액과의 **격차(Residual, 잔차)**를 분석하여 **초과 달성 핫스팟 상권**과 **숨은 소비 잠재력 상권**을 발굴하는 프로젝트입니다.
+인구(상주·직장·유동)와 인프라(집객시설, 아파트 시가/세대수, 지하철역, 병원 등) 데이터를 머신러닝 회귀 모델로 학습하여 동네별 **"기대 소비액(Expected Consumption)"**을 산출하고, 실제 상권 소비액과의 **격차(잔차, Residual)**를 분석하여 **초과 달성 상권(Hotspot)** 및 **저평가된 소비 잠재력 상권(Hidden Potential)**을 발굴합니다.
 
 ---
 
-## 📁 프로젝트 폴더 구조
+## 사용자 피드백 반영 내용
 
-원본 데이터(`data/raw`, `수집데이터`)는 일체 수정 없이 그대로 보존되었으며, 모든 산출물과 가공 데이터는 본 `Gemi_pjt` 폴더 안에 체계적으로 분류되어 있습니다:
+1. **모델 평가 방식 (추천안 채택)**:
+   - **쉬운 설명**: "직장인 1만 명이 늘면 소비가 몇 % 증가하는가?"처럼 **원인과 결과를 한눈에 쉽게 설명할 수 있는 '투명한 공식형 모델(다중 선형회귀/Ridge)'을 메인 모델**로 사용합니다.
+   - 동시에 **'인공지능 트리 모델(Random Forest)'**을 보조로 함께 돌려 예측력을 비교함으로써, "우리의 공식이 얼마나 정확하고 신뢰성 있는지"를 과학적으로 입증합니다.
+2. **세부 소비 카테고리(업종별) 확장 분석 추가**:
+   - 총 소비액뿐만 아니라 **'음식/외식', '식료품/생활', '여가/문화', '의료비'** 등 주요 세부 업종별 기대 소비액 및 갭 분석을 파이프라인과 대시보드 전용 탭에 추가 구축합니다.
 
-```text
-Gemi_pjt/
-├── index.html                  # 🌟 반응형 인터랙티브 웹 대시보드 (더블클릭으로 즉시 실행)
-├── README.md                   # 프로젝트 전체 안내 및 가이드
-├── src/                        # 분석 및 구동 파이썬 소스코드
-│   ├── data_prep.py            # Step 1: 7대 공공데이터 정제 및 2025 분기평균 병합
-│   ├── train_and_gap_analysis.py # Step 2: 공식형 회귀 학습, 잔차 계산, 5대 업종 갭 분석
-│   ├── generate_visuals.py     # Step 3: 10종 고해상도 시각화 차트 생성 (Malgun Gothic)
-│   ├── build_dashboard_data.py # Step 4: 대시보드용 경량 패키지 데이터셋(JSON) 생성
-│   ├── build_dashboard_html.py # Step 5: 웹 대시보드(index.html) 빌드 스크립트
-│   └── run_dashboard.py        # 대시보드 로컬 웹서버 실행기 (브라우저 자동 실행)
-├── data/                       # 가공 완료된 데이터셋 (결측치 제로)
-│   ├── dong_features_processed.csv    # 425개 동 인구·인프라 통합 특성 데이터 (70컬럼)
-│   ├── dong_consumption_residuals.csv # 기대소비, 실제소비, 잔차, 상권유형 매핑 데이터
-│   ├── category_gap_analysis.csv      # 5대 세부 업종별 갭 분석 데이터 (2,550행)
-│   ├── dashboard_data.json            # 웹 대시보드 임베드용 JSON 패키지 (270 KB)
-│   └── model_summary.json             # 회귀 공식, 탄력성 계수 및 메타데이터
-├── image/                      # 고해상도 분석 시각화 차트 10종 (PNG)
-│   ├── 01_feature_correlation_heatmap.png # 인구·인프라와 소비액 상관계수 히트맵
-│   ├── 02_actual_vs_expected_scatter.png  # 기대 소비액 vs 실제 소비액 산점도 (기준선)
-│   ├── 03_residual_distribution.png       # 소비 잔차(소비 갭) 정규분포 적합 곡선
-│   ├── 04_top15_overachiever_dongs.png    # 서울시 초과 달성 상권 Top 15 바 차트
-│   ├── 05_top15_potential_growth_dongs.png# 서울시 저평가 소비 잠재력 상권 Top 15 바 차트
-│   ├── 06_consumption_gap_quadrant.png    # 4분면 상권 기회 진단 매트릭스
-│   ├── 07_formula_elasticity_weights.png  # 공식형 모델 핵심 탄력성 가중치 랭킹
-│   ├── 08_gu_residual_summary.png         # 서울시 25개 구별 평균 소비 갭 비교
-│   ├── 09_category_gap_comparison.png     # 5대 세부 업종별 소비 갭 분포 박스플롯
-│   └── 10_potential_dongs_deepdive.png    # 소비 잠재력 5개 동 업종별 결핍 히트맵
-├── docs/                       # 문서 및 기술 가이드
-│   ├── data_dictionary.md      # 데이터 변수 및 파생지표 상세 정의서
-│   └── methodology_guide.md    # 공식형 모델 선정 이유 및 누구나 쉬운 결과 해석 가이드
-└── report/                     # 종합 분석 최종 보고서
-    └── consumption_gap_analysis_report.md # 비즈니스/정책 제언 포함 심층 분석 리포트
+---
+
+## 프로젝트 폴더 구조 (`Gemi_pjt`)
+
+원본 데이터(`data/raw`, `수집데이터`)는 일체 수정하지 않고 원본 그대로 유지하며, `Gemi_pjt` 폴더 안에 완결형 프로젝트로 구축합니다.
+
+```
+T_PJT2/
+└── Gemi_pjt/
+    ├── src/             # 데이터 전처리, ML 모델 학습/평가, 시각화 생성, 대시보드 스크립트
+    │   ├── data_prep.py              # 원본 7대 데이터 병합 및 정제
+    │   ├── train_and_gap_analysis.py # 총소비 및 업종별 ML 모델 학습 & 잔차/갭 계산
+    │   └── generate_visuals.py       # 고해상도 시각화 차트 10종 생성
+    ├── data/            # 전처리 완료된 학습 데이터셋 및 예측/잔차 결과 CSV
+    │   ├── dong_features_processed.csv      # 425개 행정동 특성 데이터셋
+    │   ├── dong_consumption_residuals.csv   # 총소비 기대치, 실제치, 잔차, 상권유형
+    │   └── category_gap_analysis.csv        # 업종별(음식, 여가, 마트 등) 갭 분석 데이터
+    ├── image/           # 고화질 분석 시각화 차트 (PNG) 10종
+    ├── docs/            # 데이터 정의서 및 쉬운 방법론 해설 문서
+    │   ├── data_dictionary.md        # 데이터 변수 사전
+    │   └── methodology_guide.md      # 누구나 이해하기 쉬운 분석 방법론 가이드
+    ├── report/          # 비즈니스 인사이트 및 상권 분석 종합 보고서
+    │   └── consumption_gap_analysis_report.md
+    └── index.html       # 프리미엄 반응형 인터랙티브 웹 대시보드 (업종별 확장 탭 포함)
 ```
 
 ---
 
-## 🚀 빠른 실행 가이드
+## 세부 구현 계획
 
-### 1. 인터랙티브 웹 대시보드 바로 열기
-* `Gemi_pjt/index.html` 파일을 더블클릭하여 크롬(Chrome)이나 엣지(Edge) 브라우저에서 바로 열 수 있습니다.
-* 또는 터미널에서 다음 명령어를 실행하면 로컬 웹서버가 구동되며 자동으로 브라우저가 열립니다:
-  ```bash
-  python Gemi_pjt/src/run_dashboard.py
-  ```
+### 1. Data Pipeline (`Gemi_pjt/src/data_prep.py`)
+- `data/raw/` 내 7개 핵심 데이터 결합:
+  - 상권 소비액: `OA-22166_소비_행정동.csv` (총금액 및 10대 세부 업종 금액)
+  - 상주인구/가구: `OA-22183_상주인구_행정동.csv`
+  - 직장인구: `OA-22184_직장인구_행정동.csv`
+  - 유동인구: `OA-22178_길단위인구_행정동.csv`
+  - 집객시설: `OA-22169_집객시설_행정동.csv` (지하철역, 버스정류장, 은행, 병원 등)
+  - 주거자산: `OA-22163_아파트_행정동.csv` (아파트 단지수, 평균 시가)
+  - 공간정보: `OA-22160_영역_행정동.csv` (면적 및 좌표)
+- 분기 평균 산출(계절성 노이즈 보정) 및 결측치 보정 완료 후 `Gemi_pjt/data/dong_features_processed.csv` 저장.
 
-### 2. 전체 데이터 및 모델링 파이프라인 재실행 (One-Click)
-```bash
-python Gemi_pjt/src/data_prep.py
-python Gemi_pjt/src/train_and_gap_analysis.py
-python Gemi_pjt/src/generate_visuals.py
-python Gemi_pjt/src/build_dashboard_data.py
-python Gemi_pjt/src/build_dashboard_html.py
-```
+### 2. Modeling & Residual Analysis (`Gemi_pjt/src/train_and_gap_analysis.py`)
+- **총 소비액 기대 모델**:
+  - 다중 회귀(Ridge) 및 Random Forest로 기대 소비액 산출 ($R^2 \approx 0.62$).
+  - 실제 소비액 - 기대 소비액 = 잔차(Residual).
+  - 4개 상권 그룹 분류:
+    1. **초과 달성 상권 (Super-Hub)**: 인구·인프라 대비 외부 소비 유입이 폭발적인 동네
+    2. **소비 잠재력 상권 (Growth Potential)**: 인구·인프라가 탄탄한데 소비가 덜 일어나 개발 기회가 큰 동네
+    3. **균형 상권 (Balanced)**: 기대치에 맞게 소비가 안정적인 동네
+    4. **소비 위축 상권 (Low Activity)**: 인구/인프라/소비 모두 활력이 낮은 동네
+- **업종별(카테고리별) 갭 모델**:
+  - `음식/외식`, `식료품/생활`, `여가/문화`, `의료비` 등 항목별 기대 소비액 및 갭 산출.
+  - "이 동네는 음식점 소비는 넘치는데, 여가/문화 시설 소비는 턱없이 부족하다"와 같은 세부 입체 분석 제공.
+
+### 3. Visualizations (`Gemi_pjt/src/generate_visuals.py` -> `Gemi_pjt/image/`)
+한글 폰트(`Malgun Gothic`) 적용, 깔끔하고 직관적인 10대 차트 생성:
+1. `01_feature_correlation_heatmap.png`: 어떤 인구/인프라가 소비와 가장 친한가?
+2. `02_actual_vs_expected_scatter.png`: 기대치선과 동네들의 위치 (초과 vs 저평가 한눈에 보기)
+3. `03_residual_distribution.png`: 소비 격차의 정규분포 적합도
+4. `04_top15_overachiever_dongs.png`: 서울에서 가장 소비가 핫한 초과달성 동네 Top 15
+5. `05_top15_potential_growth_dongs.png`: 인구는 많은데 소비가 저평가된 잠재력 동네 Top 15
+6. `06_consumption_gap_quadrant.png`: 4분면 상권 진단 매트릭스
+7. `07_feature_importance.png`: 인프라와 인구의 소비 영향력 랭킹
+8. `08_gu_residual_summary.png`: 25개 구별 평균 소비 갭 비교
+9. `09_category_gap_comparison.png`: 주요 업종별(음식 vs 여가 vs 쇼핑) 갭 분포 비교
+10. `10_potential_dongs_category_breakdown.png`: 잠재력 동네들의 업종별 결핍 현황
+
+### 4. Interactive Web Dashboard (`Gemi_pjt/index.html`)
+- 최신 인터페이스 디자인, 반응형 글래스모피즘 UI
+- 구성 탭:
+  - **탭 1: 종합 갭 분석 (Overview)**: 425개 동네 현황 KPI 카드, 4분면 인터랙티브 산점도, Top 초과달성/잠재력 상권 테이블
+  - **탭 2: 업종별 확장 분석 (Category Deep-Dive)**: 음식, 여가문화, 식료품 등 업종별 갭 선택 조회 및 동네별 결핍 업종 비교
+  - **탭 3: 동네 1:1 정밀 진단실 (Dong Diagnostics)**: 특정 동네를 선택하면 인구·인프라 레이더 차트, 기대 소비 vs 실제 소비 비교, 추천 입점 업종 자동 진단
+  - **탭 4: 시각화 차트 갤러리**: 10종의 고화질 이미지 모아보기 및 모달 확대 뷰
+- 별도 설치 없이 브라우저로 더블클릭하면 즉시 실행.
+
+### 5. Documentation & Reports (`Gemi_pjt/docs`, `Gemi_pjt/report`)
+- `docs/data_dictionary.md`: 누구나 알기 쉬운 변수 설명서
+- `docs/methodology_guide.md`: 수식 대신 일상적인 비유와 예시로 풀어쓴 방법론 설명
+- `report/consumption_gap_analysis_report.md`: 발표 및 보고서 제출에 바로 쓸 수 있는 종합 결과 해석 리포트
 
 ---
 
-## 💡 주요 분석 결과 요약
+## 검증 계획
 
-### 1. 공식형 머신러닝 예측 공식 (Log-Log Model, $R^2 = 60.5\%$)
-$$\log(\text{기대 소비액}) = 12.1371 + 0.710 \log(\text{집객}) + 0.432 \log(\text{은행}) + 0.318 \log(\text{유동}) - 0.192 \log(\text{상주}) + \dots$$
-* **집객시설(+0.71)과 은행(+0.43)**이 서울시 소비를 견인하는 가장 강력한 1, 2순위 요인입니다.
-* **상주인구(-0.19)**의 음수 부호는 아파트/주택만 밀집한 베드타운 주민들의 **소비 역외 유출**을 실증합니다.
-
-### 2. 상권 발굴 결과
-* **🏆 초과 달성 핫스팟 상권**: `소공동`(+4,836%), `용산2가동`(+8,376%), `구로3동`(+7,010%), `문래동`(+6,335%), `역삼2동`(+1,950%)
-* **🌟 저평가 소비 잠재력 상권**: `반포본동`(-89.6%), `개포1동`(-77.7%), `충현동`(-76.2%), `이촌1동`(-73.7%), `공덕동`(-69.4%)
-  * 이 지역들은 높은 인구와 소득 수준 대비 상권 인프라가 부족하여 소비가 외부로 새고 있는 **신규 출점 및 상권 기획의 1순위 타깃**입니다.
+1. **데이터 전처리 검증**: 결측치 없이 425개 행정동 정제 및 `Gemi_pjt/data/` 저장 확인
+2. **모델링 및 갭 산출 검증**: 회귀 계수 유의성, $R^2$ 점수 확인 및 4개 상권 그룹 분류 정상 매핑 확인
+3. **시각화 10종 생성 검증**: `Gemi_pjt/image/` 내 모든 이미지 한글 깨짐 없이 정상 렌더링 확인
+4. **대시보드 기능 검증**: 브라우저 서브에이전트를 통해 `Gemi_pjt/index.html` 접속, 탭 전환, 동네 검색, 업종별 인터랙션 완벽 작동 확인
