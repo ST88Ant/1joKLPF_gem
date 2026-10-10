@@ -1,0 +1,55 @@
+# ==========================================
+# Python & OS
+# ==========================================
+__pycache__/
+*.py[cod]
+*$py.class
+*.pyd
+.Python
+env/
+venv/
+ENV/
+env.bak/
+venv.bak/
+.venv/
+
+# ==========================================
+# OS & IDE
+# ==========================================
+.DS_Store
+Thumbs.db
+desktop.ini
+.vscode/
+.idea/
+
+# ==========================================
+# Environment Variables, Logs & Secrets
+# ==========================================
+.env
+*.env
+*.log
+logs-*.txt
+.streamlit/secrets.toml
+
+# ==========================================
+# Streamlit Cache
+# ==========================================
+dashboard/data/cache/
+Clau_pjt/data/cache/
+
+# ==========================================
+# Subfolder Git Backups
+# ==========================================
+**/.git_backup/
+**/.git_backup/**
+
+# ==========================================
+# GitHub File Size Limit (>50MB ~ 100MB+)
+# (다운로드 안내는 data/데이터_출처.md 참고)
+# ==========================================
+data/raw/소상공인_상가정보_서울.csv
+data/raw/living/통신정보_2023_전체.zip
+data/raw/상권.zip
+data/raw/상권/OA-15572_추정매출_상권.csv
+data/raw/상권/OA-15577_점포_상권.csv
+data/raw/상권/상권/
