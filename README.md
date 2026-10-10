@@ -54,7 +54,7 @@ streamlit run app.py
 
 - **전처리 데이터(`data/processed/`)**: 모델 학습 및 대시보드 구동에 필요한 전처리 결과 파일들이 포함되어 있어 클론 후 바로 실행 가능합니다.
 - **대용량 원본 데이터(`data/raw/`)**: GitHub의 100MB 단일 파일 제한 정책에 따라 100MB 이상의 대용량 원본 파일(`소상공인_상가정보_서울.csv`, `통신정보_2023_전체.zip` 등)은 제외되어 있습니다.
-- 원본 데이터 다운로드 및 재구축 방법은 [data/데이터_출처.md](data/데이터_출처.md)와 `scripts/` 내의 쉘 스크립트(`fetch_seoul_open_data.sh`, `fetch_living_data.sh` 등)를 참고해주세요.
+- 원본 데이터 공식 출처와 다운로드 방법은 **[RAW_DATA_SOURCES.md](RAW_DATA_SOURCES.md)** 및 [data/데이터_출처.md](data/데이터_출처.md)와 `scripts/` 내의 자동 수집 스크립트(`fetch_seoul_open_data.sh`, `download_sbiz_data.py` 등)를 참고해주세요.
 
 ---
 
