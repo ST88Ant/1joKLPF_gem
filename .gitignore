@@ -34,8 +34,7 @@ logs-*.txt
 # ==========================================
 # Streamlit Cache
 # ==========================================
-dashboard/data/cache/
-Clau_pjt/data/cache/
+data/cache/
 
 # ==========================================
 # Subfolder Git Backups

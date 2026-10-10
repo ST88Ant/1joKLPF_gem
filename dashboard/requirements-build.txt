@@ -1,3 +1,0 @@
-# 데이터 재생성(scripts/build_data.py)에만 필요
--r requirements.txt
-shapely>=2.0
